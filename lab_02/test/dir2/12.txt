@@ -1,0 +1,1 @@
+/home/kpirap18/sem6/BMSTU-OS-sem6/lab_02/test/dir3/1.txt
