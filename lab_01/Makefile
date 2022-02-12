@@ -3,7 +3,7 @@ FILE_O := $(subst .c,.o,$(wildcard src/*.c))
 HEADERS_DIR := headers/
 
 app.exe:  main.o $(FILE_O)
-	gcc -o app.exe $^  $(CFLAGS)
+	gcc -o a $^  $(CFLAGS)
 
 %.o: %.c
 	gcc -c -I $(HEADERS_DIR) $^

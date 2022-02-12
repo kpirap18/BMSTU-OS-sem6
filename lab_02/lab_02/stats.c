@@ -19,6 +19,7 @@ void printStats(statistics *stats)
     printf(RESET);
 }
 
+
 // Инкрементация статистических данных
 void incStats(struct stat *mode, statistics *stats)
 {

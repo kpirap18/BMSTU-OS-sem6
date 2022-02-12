@@ -122,6 +122,7 @@ static int myFtw(char *pathname, myfunc *func)
     return SUCCESS;
 }
 
+// эту функцию вызываю везде как func
 static int myFunc(const char *pathname, int type, int depth)
 {
     for (int i = 0; i < depth; i++)

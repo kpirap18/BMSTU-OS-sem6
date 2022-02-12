@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/app.exe",
-            "args": ["/home/kpirap18/sql"],
+            "args": ["/home/kpirap18/sem6/BMSTU-OS-sem6/lab_02/test"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
