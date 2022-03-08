@@ -1,0 +1,1 @@
+cmd_/home/kpirap18/sem6/BMSTU-OS-sem6/lab_03/part_02/md2.ko := ld -r  -m elf_x86_64  --build-id=sha1  -T scripts/module.lds -o /home/kpirap18/sem6/BMSTU-OS-sem6/lab_03/part_02/md2.ko /home/kpirap18/sem6/BMSTU-OS-sem6/lab_03/part_02/md2.o /home/kpirap18/sem6/BMSTU-OS-sem6/lab_03/part_02/md2.mod.o;  true

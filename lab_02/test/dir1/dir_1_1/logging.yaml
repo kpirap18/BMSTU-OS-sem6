@@ -1,0 +1,34 @@
+version: 1
+disable_existing_loggers: False
+formatters:
+  simple:
+    format: "%(levelname)s:%(name)s:%(message)s"
+  only_msg:
+    format: "%(message)s"
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: WARNING
+    formatter: simple
+    stream: ext://sys.stdout
+#  file:
+#    class: logging.handlers.RotatingFileHandler
+#    level: WARNING
+#    formatter: only_msg
+#    filename: tree.log
+loggers:
+  lexer:
+    level: WARNING
+    handlers: [console]
+  parser:
+    level: WARNING
+    handlers: [console]
+  tree:
+    level: WARNING
+    handlers: [console]
+  selection:
+    level: WARNING
+    handlers: [console]
+  psql_dialect:
+    level: WARNING
+    handlers: [console]

@@ -67,7 +67,7 @@ void printStats(statistics *stats)
 
 }
 
-static int showFiles(const char *pathname, int type)
+static int showFiles(const char *pathname, int type, ino_t i)
 {
     switch (type)
     {
@@ -75,10 +75,10 @@ static int showFiles(const char *pathname, int type)
         printf("ERROR: mistake in call func lstat for %s\n", pathname);
         break;
     case FTW_F:
-        printf(" %s\n", pathname);
+        printf(" %s (%d)\n", pathname, (int)(i));
         break;
     case FTW_D:
-        printf(" %s/\n", pathname);
+        printf(" %s (%d)/\n", pathname, (int)(i));
         break;
     case FTW_DNR:
         printf("ERROR: access to catalog %s is closed\n", pathname);
@@ -103,7 +103,7 @@ static int dopath(const char *filename, int n)
 
     if (lstat(filename, &statbuf) < 0)
     {
-        return(showFiles(filename, FTW_NS));
+        return(showFiles(filename, FTW_NS, statbuf.st_ino));
     }
 
     for (int i = 0; i < n; i++)
@@ -113,14 +113,14 @@ static int dopath(const char *filename, int n)
     {
         incStats(statbuf.st_mode, &stats);
 
-        return(showFiles(filename, FTW_F));
+        return(showFiles(filename, FTW_F, statbuf.st_ino));
     }
 
     stats.ndir++;
-    showFiles(filename, FTW_D);
+    showFiles(filename, FTW_D, statbuf.st_ino);
 
     if ((dp = opendir(filename)) == NULL)
-        return(showFiles(filename, FTW_DNR));
+        return(showFiles(filename, FTW_DNR, statbuf.st_ino));
 
     chdir(filename);
 
