@@ -38,6 +38,7 @@ extern char *md1_noexport(void)
 // коде любые экспортируемые имена.
 EXPORT_SYMBOL(md1_data);
 EXPORT_SYMBOL(md1_proc);
+// EXPORT_SYMBOL(md1_local);
 
 static int __init md_init(void)
 {
@@ -51,7 +52,7 @@ static int __init md_init(void)
 
 static void __exit md_exit(void)
 {
-	printk(KERN_INFO "+ module md1 unloaded!\n");
+	printk(KERN_INFO "++ module md1 unloaded!\n");
 }
 
 module_init(md_init);

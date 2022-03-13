@@ -21,14 +21,14 @@ static int __init md_init(void)
     printk(KERN_INFO "LAB_03_01: module is unloaded.\n");
     do
     {
-        printk(KERN_INFO "LAB_03_01:-----name: %25s\t id: %5d, parent name: %25s\t id: %5d", task->comm,
- 		task->pid, task->parent->comm, task->parent->pid);
+        printk(KERN_INFO "LAB_03_01:-----name: %25s\t id: %5d, %lu, %d, parent name: %25s\t id: %5d", task->comm,
+ 		task->pid, task->state, task->static_prio, task->parent->comm, task->parent->pid);
 
     } while ((task = next_task(task)) != &init_task);
 
     // символ current определяет текущий процесс
-    printk(KERN_INFO "LAB_03_01:This name: %25s\t id: %5d, parent name: %25s\t id: %5d", current->comm,
- 		current->pid, current->parent->comm, current->parent->pid);
+    printk(KERN_INFO "LAB_03_01:This name: %25s\t id: %5d, %u, %d, parent name: %25s\t id: %5d", current->comm,
+ 		current->pid, task->state, task->static_prio, current->parent->comm, current->parent->pid);
 
     return 0;
 }

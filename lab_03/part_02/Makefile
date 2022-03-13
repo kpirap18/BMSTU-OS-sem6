@@ -29,3 +29,6 @@ remove_b:
 
 what_m:
 	lsmod | grep md
+
+logs:
+	dmesg | grep ++
