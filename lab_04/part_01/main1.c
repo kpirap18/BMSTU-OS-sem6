@@ -19,7 +19,7 @@ typedef struct {
 #define BUFFSIZE 10000
 
 // pidof Telegram, для примера
-#define PID 23261
+#define PID 12425
 FILE *f = NULL;
 
 void printCMDLINE()
@@ -595,6 +595,27 @@ void printMEMINFO()
     fclose(file);
 }
 
+void printCPUINFO()
+{
+    char pathToOpen[PATH_MAX];
+    snprintf(pathToOpen, PATH_MAX, "/proc/cpuinfo");
+    FILE *file = fopen(pathToOpen, "r");
+
+    char buf[BUFFSIZE];
+    fread(buf, 1, BUFFSIZE, file);
+    char *token = strtok(buf, " ");
+
+    fprintf(f, "\nCPUINFO\n");
+
+    for (int i = 0; token != NULL; i++)
+    {
+        fprintf(f, "%s  ", token);
+        token = strtok(NULL, " ");
+    }
+
+    fclose(file);
+}
+
 
 int main()
 {
@@ -645,6 +666,9 @@ int main()
     fprintf(f, "\n==================================\n");
 
     printIOPORTS();
+    fprintf(f, "\n==================================\n");
+
+    printCPUINFO();
     fprintf(f, "\n==================================\n");
 
     printMEMINFO();

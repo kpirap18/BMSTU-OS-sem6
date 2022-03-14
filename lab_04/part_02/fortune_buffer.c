@@ -14,7 +14,7 @@ MODULE_DESCRIPTION("Fortune Cookie Kernel Module");
 #define FORTUNE_DIRNAME "fortune_dir"
 #define FORTUNE_FILENAME "fortune_file"
 #define FORTUNE_SYMLINK "fortune_symlink"
-#define FORTUNE_PATH FORTUNE_FILENAME
+#define FORTUNE_PATH FORTUNE_FILENAME 
 
 #define MAX_COOKIE_BUF_SIZE PAGE_SIZE
 
@@ -75,7 +75,7 @@ static ssize_t fortune_write(struct file *file, const char __user *buf, size_t l
     write_index += len;
     cookie_buffer[write_index - 1] = '\n';
 
-    cookie_buffer[write_index] = 0;
+    cookie_buffer[write_index] = '\0';
     write_index += 1;
 
     return len; // количество символов фактически записанных в cookie_buffer
@@ -87,6 +87,7 @@ static ssize_t fortune_write(struct file *file, const char __user *buf, size_t l
 // count определяет размер передаваемых данных, 
 // f_pos указывает на смещение от начала данных файла для операций записи
 // (f_pos: текущая позиция чтения/записи в файле)
+// Тип loff_t образован от сочетания “long_offset” (длинное смещение) имеет не меньше 64 бит емкости даже на 32-битовых платформах. В случае ошибки возвращается отрицательный код ошибки. Функция должна изменять положение счетчика в структуре file, которая описывается в этой главе позднее. Если функция не определена, ядро возвращает ошибку end-of-file (конец файла)
 static ssize_t fortune_read(struct file *file, char __user *buf, size_t len, loff_t *f_pos) 
 {
     int read_len;
@@ -105,6 +106,11 @@ static ssize_t fortune_read(struct file *file, char __user *buf, size_t len, lof
         read_index = 0;
     }
 
+// 1ый Адрес назначения находится в пространстве пользователя.
+// 2ой Адрес источника находится в пространстве ядра.
+// 3ий количество копируемых байт.
+// Функция возвращает количество байт, которые не могут быть скопированы.
+// В случае успешного выполнения будет возвращен 0.
     read_len = snprintf(tmp_buffer, MAX_COOKIE_BUF_SIZE, "%s\n", &cookie_buffer[read_index]);
     if (copy_to_user(buf, tmp_buffer, read_len) != 0)
     {
@@ -137,7 +143,8 @@ static void cleanup_fortune(void)
 
     if (fortune_file != NULL)
     {
-        remove_proc_entry(FORTUNE_FILENAME, fortune_dir);
+        remove_proc_entry(FORTUNE_FILENAME, NULL);
+
     }
 
     if (fortune_dir != NULL) 

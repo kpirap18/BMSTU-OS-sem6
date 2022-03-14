@@ -15,7 +15,7 @@ MODULE_DESCRIPTION("Fortune Cookie Kernel Module");
 #define FORTUNE_DIRNAME "fortune_dir"
 #define FORTUNE_FILENAME "fortune_file"
 #define FORTUNE_SYMLINK "fortune_symlink"
-#define FORTUNE_PATH FORTUNE_FILENAME
+#define FORTUNE_PATH FORTUNE_DIRNAME "/" FORTUNE_FILENAME
 
 #define MAX_BUF_SIZE PAGE_SIZE
 
