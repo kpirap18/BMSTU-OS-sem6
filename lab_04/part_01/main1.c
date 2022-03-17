@@ -18,7 +18,7 @@ typedef struct {
 
 #define BUFFSIZE 10000
 
-// pidof Telegram, для примера
+// pidof проект С МНОГОПОТОЧНОСТЬЮ желательно 
 #define PID 12425
 FILE *f = NULL;
 
