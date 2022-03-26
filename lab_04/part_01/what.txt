@@ -2,3 +2,8 @@
 ps -eal
 
 Изменить переменную 
+
+
+echo "Hello2" > /proc/fortune_dir/fortune_file
+
+echo "Hello2" > /proc/fortune_file

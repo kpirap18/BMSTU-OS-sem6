@@ -1,3 +1,17 @@
+/*Для очень простых виртуальных файлов есть еще более простой интерфейс. 
+Модуль может определить только функцию show(), которая должна создавать 
+весь вывод, который будет содержать виртуальный файл.
+ Затем метод open() файла вызывает:
+
+int single_open(struct file *file,
+                int (*show)(struct seq_file *m, void *p),
+                void *data);
+Когда придет время вывода, функция show() будет вызвана один раз. 
+Значение данных, переданное single_open(), можно найти в частном поле 
+структуры seq_file. При использовании single_open() программист 
+должен использовать single_release() вместо seq_release() 
+в структуре file_operations, чтобы избежать утечки памяти.
+*/
 #include <linux/module.h> 
 #include <linux/kernel.h> 
 #include <linux/init.h>  
@@ -48,7 +62,7 @@ static int fortune_open(struct inode *sp_inode, struct file *sp_file)
 static int fortune_release(struct inode *sp_node, struct file *sp_file) 
 {
     printk(KERN_INFO "++ MY_FORTUNE: %s called.\n", __func__);
-    return OK;
+    return single_release(sp_node, sp_file);
 }
 
 static ssize_t fortune_write(struct file *file, const char __user *buf, size_t len, loff_t *ppos) 

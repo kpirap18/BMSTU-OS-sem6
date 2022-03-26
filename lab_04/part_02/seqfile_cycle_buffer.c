@@ -72,7 +72,7 @@ static int fortune_open(struct inode *sp_inode, struct file *sp_file)
 static int fortune_release(struct inode *sp_node, struct file *sp_file) 
 {
     printk(KERN_INFO "++ MY_FORTUNE: %s called.\n", __func__);
-    return OK;
+    return single_release(sp_node, sp_file);
 }
 
 // пишем в ядро
@@ -85,7 +85,7 @@ static ssize_t fortune_write(struct file *file, const char __user *buf, size_t l
     printk(KERN_INFO "++ MY_FORTUNE: %s called.\n", __func__);;
 
     // достаточно ли места для размещения фортунки
-    if (len > MAX_COOKIE_BUF_SIZE - cookie_index + 1)
+    if (len > MAX_BUF_SIZE - write_index + 1)
     {
         printk(KERN_ERR "++ MY_FORTUNE: %s.\n", "Buffer overflow");
         return -ENOSPC;
@@ -95,19 +95,19 @@ static ssize_t fortune_write(struct file *file, const char __user *buf, size_t l
 // 1ый аргумент - куда в пространстве ядра, 
 // 2ой - откуда из пространства пользователя,
 // 3ий - сколько байт
-    if (copy_from_user(&cookie_buffer[cookie_index], buf, len) != 0)
+    if (copy_from_user(&buffer[write_index], buf, len) != 0)
     {
         printk(KERN_ERR "++ MY_FORTUNE: %s.\n", "copy_from_user function get a error");
         return -EFAULT;
     }
 
-    cookie_index += len;
-    cookie_buffer[cookie_index - 1] = '\n';
+    write_index += len;
+    buffer[write_index - 1] = '\n';
 
-    cookie_buffer[cookie_index] = 0;
-    cookie_index += 1;
+    buffer[write_index] = '\0';
+    write_index += 1;
 
-    return len; // количество символов фактически записанных в cookie_buffer
+    return len; // количество символов фактически записанных в buffer
 }
 static const struct proc_ops fops =
 {
@@ -144,13 +144,13 @@ static int __init fortune_init(void)
     printk(KERN_INFO "++ MY_FORTUNE: %s called.\n", __func__);
 
     // Выделение 'виртуально' непрерывного блока памяти 
-    if ((cookie_buffer = vmalloc(MAX_COOKIE_BUF_SIZE)) == NULL)
+    if ((buffer = vmalloc(MAX_BUF_SIZE)) == NULL)
     {
         printk(KERN_ERR "++ MY_FORTUNE: %s.\n", "Allocate memory error.");
         return -ENOMEM;
     }
 
-    memset(cookie_buffer, 0, MAX_COOKIE_BUF_SIZE);
+    memset(buffer, 0, MAX_BUF_SIZE);
 
     if ((fortune_dir = proc_mkdir(FORTUNE_DIRNAME, NULL)) == NULL)
     {

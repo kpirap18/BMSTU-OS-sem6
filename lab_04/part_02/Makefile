@@ -1,7 +1,7 @@
 CURRENT = $(shell uname -r)
 KDIR = /lib/modules/$(CURRENT)/build
 PWD = $(shell pwd)
-TARGET = fortune_buffer
+TARGET = single_open_buffer
 obj-m := $(TARGET).o
 
 default:

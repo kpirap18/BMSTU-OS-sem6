@@ -19,7 +19,7 @@ typedef struct {
 #define BUFFSIZE 10000
 
 // pidof Telegram, для примера
-#define PID 12425
+#define PID 2980
 FILE *f = NULL;
 
 void printCMDLINE()
@@ -277,6 +277,8 @@ void printPAGEMAP()
     int offset = 0;
     int pagemap_fd;
     pid_t pid;
+
+    fprintf(f, "addr = Если страница присутствует в ОЗУ (бит 63), то эти биты обеспечивают номер страничного фрейма, Если страница присутствует в свопе (бит 62), затем биты 4–0 задают тип подкачки, а биты 54–5 кодируют смещение подкачки.\npfn \nsoft-dirty \nfile/shared = Страница представляет собой страницу с отображением файлов или общую анонимную страницу \nswapped = Если установлено, страница находится в пространстве подкачк \npresent = Если установлено, страница находится в оперативной памяти.\n\n");
 
     snprintf(maps_file, sizeof(maps_file), "/proc/%ju/maps", (uintmax_t)PID);
     snprintf(pagemap_file, sizeof(pagemap_file), "/proc/%ju/pagemap", (uintmax_t)PID);
