@@ -39,8 +39,9 @@ static void *ct_seq_start(struct seq_file *m, loff_t *pos)
         return buffer;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
     }
 
-    //*pos = 0;
+    *pos = 0;
     // *spos = *pos;
+    // return spos;
     return NULL;
 }
 
@@ -55,8 +56,9 @@ static void *ct_seq_next(struct seq_file *m, void *v, loff_t *pos)
         return NULL;
     }
 
-    // loff_t *spos = v;
-    // *pos = ++*spos;    
+    // *pos += strlen((char*)(v));  
+    (*pos)++;
+
 
     return NULL;
 }
@@ -105,13 +107,13 @@ static ssize_t fortune_write(struct file *file, const char __user *buf, size_t l
 
     if (len > MAX_BUF_SIZE)
     {
-        printk(KERN_ERR "FORTUNE_MODULE: %s.\n", "Buffer overflow");
+        printk(KERN_ERR "++ MY_FORTUNE: %s.\n", "Buffer overflow");
         return -ENOSPC;
     }
 
     if (copy_from_user(buffer, buf, len) != 0)
     {
-        printk(KERN_ERR "FORTUNE_MODULE: %s.\n", "copy_from_user function get a error");
+        printk(KERN_ERR "++ MY_FORTUNE: %s.\n", "copy_from_user function get a error");
         return -EFAULT;
     }
 
@@ -159,32 +161,32 @@ static int __init fortune_init(void)
 
     if ((buffer = vzalloc(MAX_BUF_SIZE)) == NULL)
     {
-        printk(KERN_ERR "FORTUNE_MODULE: %s.\n", "Allocate memory error.");
+        printk(KERN_ERR "++ MY_FORTUNE: %s.\n", "Allocate memory error.");
         return -ENOMEM;
     }
 
     if ((fortune_dir = proc_mkdir(FORTUNE_DIRNAME, NULL)) == NULL)
     {
-        printk(KERN_ERR "FORTUNE_MODULE: %s.\n", "Error during create directory in proc");
+        printk(KERN_ERR "++ MY_FORTUNE: %s.\n", "Error during create directory in proc");
         cleanup_fortune();
         return -ENOMEM;
     }
 
     if ((fortune_file = proc_create(FORTUNE_FILENAME, 0666, fortune_dir, &fops)) == NULL) 
     {
-        printk(KERN_ERR "FORTUNE_MODULE: %s.\n", "Error during create file in proc");
+        printk(KERN_ERR "++ MY_FORTUNE: %s.\n", "Error during create file in proc");
         cleanup_fortune();
         return -ENOMEM;
     }
 
     if ((fortune_symlink = proc_symlink(FORTUNE_SYMLINK, NULL, FORTUNE_PATH)) == NULL)
     {
-        printk(KERN_ERR "FORTUNE_MODULE: %s.\n", "Error during create symlink in proc");
+        printk(KERN_ERR "++ MY_FORTUNE: %s.\n", "Error during create symlink in proc");
         cleanup_fortune();
         return -ENOMEM;
     }
 
-    printk(KERN_INFO "FORTUNE_MODULE: %s.\n", "Module has benn successfully loaded.\n");
+    printk(KERN_INFO "++ MY_FORTUNE: %s.\n", "Module has benn successfully loaded.\n");
     return OK;
 }
 
@@ -192,7 +194,7 @@ static void __exit fortune_exit(void)
 {
     printk(KERN_INFO "++ MY_FORTUNE: %s called.\n", __func__);
     cleanup_fortune();
-    printk(KERN_INFO "FORTUNE_MODULE: %s.\n", "Module has been successfully removed");
+    printk(KERN_INFO "++ MY_FORTUNE: %s.\n", "Module has been successfully removed");
 }
 
 module_init(fortune_init);
