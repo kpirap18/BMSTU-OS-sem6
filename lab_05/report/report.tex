@@ -1,0 +1,523 @@
+\documentclass[a4paper,oneside,12pt]{extreport}
+
+\include{preamble}
+
+
+\begin{document}
+
+\include{title}
+
+\section*{Практическая часть}
+В файле '/usr/include/x86\_64-linux-gnu/bits/types/FILE.h' было создано дополнительное 
+имя для структуры FILE, которая используется в нашей программе.
+\begin{lstlisting}[language=C]
+typedef struct _IO_FILE FILE;
+\end{lstlisting}
+
+В файле 'cat /usr/include/x86\_64-linux-gnu/bits/libio.h' находится описание структуры \_IO\_FILE
+\begin{lstlisting}[language=C]
+struct _IO_FILE
+{
+int _flags; /* High-order word is _IO_MAGIC; rest is flags. */
+#define _IO_file_flags _flags
+
+/* The following pointers correspond to the C++ streambuf protocol. */
+/* Note:  Tk uses the _IO_read_ptr and _IO_read_end fields directly. */
+char *_IO_read_ptr;   /* Current read pointer */
+char *_IO_read_end;   /* End of get area. */
+char *_IO_read_base;  /* Start of putback+get area. */
+char *_IO_write_base; /* Start of put area. */
+char *_IO_write_ptr;  /* Current put pointer. */
+char *_IO_write_end;  /* End of put area. */
+char *_IO_buf_base;   /* Start of reserve area. */
+char *_IO_buf_end;    /* End of reserve area. */
+/* The following fields are used to support backing up and undo. */
+char *_IO_save_base;   /* Pointer to start of non-current get area. */
+char *_IO_backup_base; /* Pointer to first valid character of backup area */
+char *_IO_save_end;    /* Pointer to end of non-current get area. */
+
+struct _IO_marker *_markers;
+
+struct _IO_FILE *_chain;
+
+int _fileno;
+#if 0
+int _blksize;
+#else
+int _flags2;
+#endif
+_IO_off_t _old_offset; /* This used to be _offset but it's too small.  */
+
+#define __HAVE_COLUMN /* temporary */
+/* 1+column number of pbase(); 0 is unknown. */
+unsigned short _cur_column;
+signed char _vtable_offset;
+char _shortbuf[1];
+
+/*  char* _save_gptr;  char* _save_egptr; */
+
+_IO_lock_t *_lock;
+#ifdef _IO_USE_OLD_IO_FILE
+};
+\end{lstlisting}
+\newpage
+\begin{task}
+    Первая программа один поток.
+    \begin{lstlisting}[language=C]
+#include <stdio.h>
+#include <fcntl.h>
+
+#define FILE_NAME "alphabet.txt"
+#define BUFF_SIZE 20
+
+#define GREEN "\33[32m"
+#define BLUE "\33[34m"
+
+int main()
+{
+	int fd = open(FILE_NAME, O_RDONLY); 
+	
+	FILE *fs1 = fdopen(fd, "r");
+	char buff1[BUFF_SIZE];
+	
+	FILE *fs2 = fdopen(fd, "r");
+	char buff2[BUFF_SIZE];
+	setvbuf(fs2, buff2, _IOFBF, BUFF_SIZE);
+	
+	printf("\nfs1 _fileno: %d\n", fs1->_fileno);
+	printf("\nfs2 _fileno: %d\n", fs2->_fileno);
+	printf("\nfs1 buff1[0] == fs1->_IO_buf_base: %d\n", buff1 == fs1->_IO_buf_base);
+	printf("\nfs2 buff2[0] == fs2->_IO_buf_base: %d\n", buff2 == fs2->_IO_buf_base);
+	
+	int flag1 = 1, flag2 = 2;
+
+	while (flag1 == 1 || flag2 == 1)
+	{
+		char c;
+		flag1 = fscanf(fs1, "%c", &c);
+		if (flag1 == 1)
+		{
+			fprintf(stdout, GREEN "%c", c);
+		}
+		flag2 = fscanf(fs2, "%c", &c);
+		if (flag2 == 1)
+		{
+			fprintf(stdout, BLUE "%c", c);
+		}
+	}
+	
+	printf("\n");
+	return 0;
+}
+    \end{lstlisting}
+
+    %\newpage
+
+    \begin{center}
+        \textbf{Объяснение}        
+    \end{center}
+
+    Данная программа считывает информацию из файла <<alphabet.txt>>, который содержит строку символов <<ABCDEFGHIJKLMNOPQRSTUVWXYZ>>.
+    И при помощи двух буферов посимвольно выводит считанные символы в стандартный поток вывода stdout.  
+
+    Так как отчет печатался на Ч/Б принтере, различия в цветах не видны.
+    
+    Зеленым цветом показан вывод с помощью первого буфера, синим с помощью второго.
+ 
+    \begin{figure}[ht!]
+        \centering{
+            \includegraphics[width=1\textwidth]{img/Diagram_1.png}
+            \caption{Связь между дескрипторами в первой программе}}
+    \end{figure}
+    
+
+    В начале функции main open() создает новый файловый дескриптор для открытого
+    только на чтение (O\_RDONLY) файла <<alphabet.txt>>, запись в системной таблице открытых файлов. 
+    Эта запись регистрирует смещение в файле и флаги состояния файла.
+    
+    Далее fdopen() создает два указателя на структуру FILE, приведенную выше.
+    В данных структурах поле \_fileno будет содержать дескриптор, который вернула
+    функция fopen(). Для fs1 и fs2 эти поля будут равны 3.
+
+    Функция setvbuf() изменяет тип буферизации для fs1 и fs2 на
+    полную буферизацию, а также явно задает размер буфера 20 байт.
+
+    Далее при первом вызове fscanf() буфер fs1 заполнится полностью, 
+    т.е. первыми 20 символами. 
+    Значение f\_pos в структуре struct\_file открытого файла увеличится на 20.
+    Далее при первом вызове fscanf() для fs2 в buff2 считаются оставшиеся 6 символов,
+    начиная с f\_pos (т.к. fs1 и fs2 ссылаются на один и тот же дескриптор fd).
+
+    Далее в цикле поочередно выводятся символы из buff1 и buff2.
+    Т.к. в buff2 записались оставшиеся 6 символов, после 6 итерации
+    цикла будут выводится символы только из buff1.
+
+    \begin{figure}[ht!]
+        \centering{
+            \includegraphics[width=0.8\textwidth]{img/res_1.png}
+            \caption{Результат работы первой программы}}
+    \end{figure}
+
+Первая программа два потока.
+    \begin{lstlisting}[language=C]
+#include <stdio.h>
+#include <fcntl.h>
+#include <pthread.h>
+
+#define BUF_SIZE 20
+
+void *run_buffer(void *args)
+{
+	int flag = 1;
+	FILE *fs = (FILE *)args;
+	
+	while (flag == 1){
+		char c;
+		if ((flag = fscanf(fs, "%c\n", &c)) == VALID_READED	{
+			fprintf(stdout, "thread 2: " "%c\n", c);}}
+	return NULL;
+}
+
+int main(void)
+{
+	setbuf(stdout, NULL);
+	
+	pthread_t thread;
+	int fd = open("alphabet.txt", O_RDONLY); 
+	
+	FILE *fs1 = fdopen(fd, "r");
+	char buff1[BUF_SIZE];
+	setvbuf(fs1, buff1, _IOFBF, BUF_SIZE); 
+	
+	FILE *fs2 = fdopen(fd, "r");
+	char buff2[BUF_SIZE];
+	setvbuf(fs2, buff2, _IOFBF, BUF_SIZE);
+	
+	int rc = pthread_create(&thread, NULL, run_buffer, (void *)fs2);
+	
+	int flag = 1;
+	while (flag == 1){
+		char c;
+		flag = fscanf(fs1, "%c\n", &c);
+		if (flag == 1){
+			fprintf(stdout, "thread 1: " "%c\n", c);
+		}
+	}
+	
+	pthread_join(thread, NULL);
+	
+	return 0;
+}
+\end{lstlisting}
+
+	\begin{figure}[ht!]
+		\centering{
+			\includegraphics[width=0.5\textwidth]{img/res_1_2.png}
+			\caption{Результат работы первой программы}}
+	\end{figure}
+
+\end{task}
+
+\newpage
+
+\begin{task}
+    Вторая программа. Один поток.
+    \begin{lstlisting}[language=C]
+//testKernelIO.c
+#include <fcntl.h>
+#include <unistd.h> // read, write.
+
+int main()
+{
+	char c;
+	
+	int fd1 = open("alphabet.txt", O_RDONLY);
+	int fd2 = open("alphabet.txt", O_RDONLY);
+	int rc1, rc2 = 1;
+	
+	while (rc1 == 1 || rc2 == 1){
+		char c;
+		
+		rc1 = read(fd1, &c, 1);
+		if (rc1 == 1){
+			write(1, &c, 1);}
+		
+		rc2 = read(fd2, &c, 1);
+		if (rc2 == 1){
+			write(1, &c, 1);}
+	}
+	
+	write(1, "\n", 1);
+	return 0;
+}
+    \end{lstlisting}
+
+    
+    
+    \begin{figure}[ht!]
+        \centering{
+            \includegraphics[width=0.8\textwidth]{img/Diagram_2.png}
+            \caption{Связь между дескрипторами во второй программе}}
+    \end{figure}
+    
+    \newpage
+    \begin{center}
+        \textbf{Объяснение}        
+    \end{center}
+
+    В данной программе создается два дескриптора открытого файла при помощи функции open(). 
+    %При этом создается две разные структуры struct\_file, описывающие файл.
+    В системной таблице открытых файлов создаются две новых записи. %так как f\_pos разные, то чтение будет проходить независимо.
+    Далее в цикле поочередно считываются символы из файла и выводятся на экран.
+    Т.к. созданы две структуры struct file, то у каждой структуры будет свой f\_pos и смещения в файловых дескрипторах будут независимы, поэтому на экран будут дважды выводится символы одного и того же файла.
+
+    \begin{figure}[ht!]
+        \centering{
+            \includegraphics[width=0.8\textwidth]{img/res_2.png}
+            \caption{Результат работы второй программы}}
+    \end{figure}
+    % В системной таблице открытых файлов создаются две новые записи, дескрипторы 
+
+    Вторая программа. Два потока.
+    \begin{lstlisting}[language=C]
+#include <fcntl.h>
+#include <unistd.h> // read, write.
+#include <pthread.h>
+#include <stdio.h>
+
+void read_file(int fd){
+	char c;
+	while (read(fd, &c, 1))
+	{
+		write(1, &c, 1);
+	}
+}
+	
+void *thr_fn(void *arg){
+	int fd = open("alphabet.txt", O_RDONLY);
+	read_file(fd);
+}
+
+int main()
+{
+	pthread_t tid;
+	
+	int fd = open("alphabet.txt", O_RDONLY);
+	
+	int err = pthread_create(&tid, NULL, thr_fn, 0);
+	if (err) {
+		printf("Error while create pthread");
+		return -1;
+	}
+	
+	read_file(fd);
+	pthread_join(tid, NULL);
+	
+	write(1, "\n", 1);
+	return 0;
+}
+    \end{lstlisting}
+
+    В программе также, как и при реализации с одним потоком, создается
+    два файловых дескриптора для открытого файла, записи в системной таблице открытых файлов.
+    У каждой записи будет свое смещение f\_pos.
+    Т.к. главный поток ждет окончания дочернего, то гарантируется вывод
+    всего алфавита дважды.
+    Порядок, в котором будут выводится символы алфавита, неизвестен,
+    т.к. вывод производится параллельно.
+
+
+    \begin{figure}[ht!]
+        \centering{
+            \includegraphics[width=0.8\textwidth]{img/res_2_pthread.png}
+            \caption{Результат работы второй программы при двух потоках}}
+    \end{figure}
+
+\end{task}
+
+\newpage
+\begin{task}
+    Третья программа. Один поток.
+
+    \begin{lstlisting}[language=C]
+#include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+#include <sys/stat.h>
+
+void info()
+{
+	struct stat statbuf;
+	
+	stat("res3.txt", &statbuf);
+	printf("inode: %ld\n", statbuf.st_ino);
+	printf("st_size: %ld\n", statbuf.st_size);
+	printf("st_blksize: %ld\n\n", statbuf.st_blksize);
+}
+
+int main()
+{
+	FILE *f1 = fopen("res3.txt", "w");
+	info();
+	FILE *f2 = fopen("res3.txt", "w");
+	info();
+	
+	printf("\nfs1 _fileno: %d", f1->_fileno);
+	printf("\nfs2 _fileno: %d\n\n", f2->_fileno);
+	
+	for (char c = 'a'; c <= 'z'; c++)
+	{
+		if (c % 2)
+		{
+			fprintf(f1, "%c", c);
+		}
+		else
+		{
+			fprintf(f2, "%c", c);
+		}
+	}
+	
+	fclose(f1);
+	info();
+	fclose(f2);
+	info();
+	
+	return 0;
+}
+    \end{lstlisting}
+
+    В данной программе файл 'res3.txt' открывается 2 раза для записи.
+    Выполняется ввод через стандартную библиотеку С (stdio.h). 
+    fprintf() - буферизованный ввод/вывод. 
+    Буфер создается без нашего явного вмешательства.
+    Сначала информация пишется в буфер, а из буфера информация 
+    переписывается в файл в результате 3-ех действий:
+    \begin{enumerate}
+        \item буфер полон;
+        \item принудительная запись fflush();
+        \item если вызван fclose().
+    \end{enumerate}   
+
+    \begin{figure}[ht!]
+        \centering{
+            \includegraphics[width=1\textwidth]{img/Diagram_3.png}
+            \caption{Связь между дескрипторами в третьей программе}}
+    \end{figure}
+
+    В нашей программе символы, имеющие нечетный код в таблице ASCII
+    записываются в буфер, который находится в дескрипторе f1, 
+    в f2 соответственно записываются четные. 
+    Таким образом в буфере, который содержится в f1 будут символы: 'acej...', 
+    а в f2 'bdfh...'.
+    В нашем случае информация из фубера запишется в файл при вызове fclose().
+    Т.к. f\_pos независимы у каждого дескриптора файла, то при закрытии файла
+    запись будет производиться начиная с начала файла в обоих случаях.
+    Таким образом информация, которая будет записана в файл, после первого вызова
+    fclose() будет потеряна в результате второго вызова fclose() рис. \ref{ref:res31}.   
+   
+    \begin{figure}[ht!]
+        \centering{
+            \includegraphics[width=0.7\textwidth]{img/res_3_1.png}
+            \caption{Результат работы третьей программы }
+            \label{ref:res31}}
+    \end{figure}
+
+    Если поменять вызовы fclose() местами, то будет потеряна информация,
+    которая содержится во втором буфере рис. \ref{ref:res32}.
+    \begin{lstlisting}[language=C]
+    fclose(f2);
+    fclose(f1);
+    \end{lstlisting}
+
+    \begin{figure}[ht!]
+        \centering{
+            \includegraphics[width=0.7\textwidth]{img/res_3_2.png}
+            \caption{Результат работы третьей программы с другим порядком вызовов fclose()}
+            \label{ref:res32}}
+    \end{figure}
+
+    \newpage
+    С помощью stat после каждого вызова fopen() и fclose()
+    показана некоторая информация о файле рис. \ref{ref:info}. 
+
+    \begin{figure}[ht!]
+        \centering{
+            \includegraphics[width=0.7\textwidth]{img/info_3.png}
+            \caption{Информация, полученная при помощи stat}
+            \label{ref:info}}
+    \end{figure}
+
+    \newpage
+
+    Третья программа. Два потока.
+    \begin{lstlisting}[language=C]
+#include <stdio.h>
+#include <fcntl.h>
+#include <pthread.h>
+#include <unistd.h>
+#include <sys/stat.h>
+
+void info()
+{
+	struct stat statbuf;
+	
+	stat("res3.txt", &statbuf);
+	printf("inode: %ld\n", statbuf.st_ino);
+	printf("st_size: %ld\n", statbuf.st_size);
+	printf("st_blksize: %ld\n\n", statbuf.st_blksize);
+}
+
+void run_buffer(char c)
+{
+	FILE *f = fopen("res3_th.txt", "w");
+	info();
+	
+	while (c <= 'z'){
+		fprintf(f, "%c", c);
+		c += 2;
+	}
+	
+	fclose(f);
+	info();
+}
+
+void *for_help(void *arg)
+{
+	run_buffer('a');
+}
+
+int main()
+{
+	pthread_t thread;
+	int rc = pthread_create(&thread, NULL, for_help, NULL);
+	
+	if (rc){
+		printf("Error while create pthead");
+		return -1;
+	}
+	
+	//sleep(1);
+	run_buffer('b');
+	
+	pthread_join(thread, NULL);
+	return 0;
+}
+    \end{lstlisting}
+
+    В данной программе создается поток.
+    Главный поток записывает в файл символы, начиная с 'a', в то время, как созданный
+    нами поток записывает символы, начиная с 'b'. 
+    Так же как и в приведенной выше программе с одним потоком происходит потеря данных.
+    Данные будут записаны из того буфера (который содержится в дескрипторе), для которого
+    будет вызван fclose() последним, потому что он перезапишет данные с начала файла.
+    Можно принудительно в главном потоке вызвать sleep(), чтобы в файле были данные 
+    записанные из главного потока. Тогда результат работы представлен на рис. \ref{ref:res32}.
+
+\end{task}
+
+%\section*{Заключение}
+
+%В ходе выполнения данной лабораторной работы были проанализированы три программы.Открытие файла при помощи open() создает новый файловый дескриптор для открытого файла, запись в системной таблице открытых файлов.У различных дескрипторов открытого файла смещения не зависят друг от друга.Поэтому чтобы избежать потери данных необходимо учитывать, что файл может быть открыт несколько раз.
+
+\end{document}

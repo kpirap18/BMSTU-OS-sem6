@@ -1,0 +1,135 @@
+\usepackage{mmap}
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english,russian]{babel}
+
+
+% Текст отчёта следует печатать, соблюдая следующие размеры полей:
+% левое — 30 мм, правое — 15 мм, верхнее и нижнее — 20 мм.
+\usepackage[left=20mm, right=15mm, top=15mm, bottom=15mm]{geometry}
+
+% \setlength{\parindent}{1.25cm} % Абзацный отступ
+
+\usepackage{setspace}
+%\onehalfspacing % Полуторный интервал
+
+\frenchspacing % Равномерные пробелы
+\usepackage{indentfirst} % Красная строка
+
+\usepackage{microtype}
+\sloppy
+
+\usepackage{titlesec}
+\titlespacing*{\chapter}{0pt}{-30pt}{8pt}
+\titlespacing*{\section}{\parindent}{*4}{*4}
+\titlespacing*{\subsection}{\parindent}{*4}{*4}
+\titleformat{\chapter}{\LARGE\bfseries}{\thechapter}{20pt}{\LARGE\bfseries}
+\titleformat{\section}{\Large\bfseries}{\thesection}{40pt}{\Large\bfseries}
+
+\usepackage{graphicx}
+\usepackage{caption}
+
+\usepackage[unicode,pdftex]{hyperref}
+\hypersetup{hidelinks}
+
+%% title begin
+\usepackage{wrapfig}
+
+\makeatletter
+	\def\vhrulefill#1{\leavevmode\leaders\hrule\@height#1\hfill \kern\z@}
+\makeatother
+%% title end
+
+%% begin code
+\usepackage{listings}
+\usepackage{xcolor}
+
+\lstset{
+	basicstyle=\footnotesize\sffamily,
+	breakatwhitespace=true,
+	breaklines=true,
+	commentstyle=\color{gray},
+	frame=single,
+	keywordstyle=\color{blue},
+	stringstyle=\color{red},
+	tabsize=8
+}
+
+\lstdefinestyle{lispinline}{
+	frame=none,
+	language=Lisp
+}
+
+\newcommand{\code}[1]{\texttt{#1}}
+%% end code
+
+%% begin theorem
+\usepackage{amsthm}
+
+\makeatletter
+\newtheoremstyle{indented}
+	{}% measure of space to leave above the theorem
+	{}% measure of space to leave below the theorem
+	{}% name of font to use in the body of the theorem
+	{\parindent}% measure of space to indent
+	{\bfseries}% name of head font
+	{.}% punctuation between head and body
+	{ }% space after theorem head; " " = normal interword space
+	{}% header specification (empty for default)
+\makeatother
+
+\theoremstyle{indented}
+
+\newtheorem{definition}{Определение}[section]
+\newtheorem{example}{Пример}[section]
+\newtheorem{theorem}{Теорема}[section]
+\newtheorem{task}{Задание}
+
+\makeatletter
+\DeclareRobustCommand\bfseriesitshape{%
+	\not@math@alphabet\itshapebfseries\relax
+	\fontseries\bfdefault
+	\fontshape\itdefault
+	\selectfont
+}
+\makeatother
+
+\DeclareTextFontCommand{\textbfit}{\bfseriesitshape}
+\DeclareTextFontCommand{\define}{\bfseriesitshape}
+%% end theorem
+
+%% begin columns
+\usepackage{etoolbox,refcount}
+\usepackage{multicol}
+
+\newcounter{countitems}
+\newcounter{nextitemizecount}
+\newcommand{\setupcountitems}{%
+	\stepcounter{nextitemizecount}%
+	\setcounter{countitems}{0}%
+	\preto\item{\stepcounter{countitems}}%
+}
+\makeatletter
+\newcommand{\computecountitems}{%
+	\edef\@currentlabel{\number\c@countitems}%
+	\label{countitems@\number\numexpr\value{nextitemizecount}-1\relax}%
+}
+\newcommand{\nextitemizecount}{%
+	\getrefnumber{countitems@\number\c@nextitemizecount}%
+}
+\newcommand{\previtemizecount}{%
+	\getrefnumber{countitems@\number\numexpr\value{nextitemizecount}-1\relax}%
+}
+\makeatother
+\newenvironment{AutoMultiColItemize}{%
+	\ifnumcomp{\nextitemizecount}{>}{3}{\begin{multicols}{2}}{}%
+		\setupcountitems\begin{itemize}}%
+		{\end{itemize}%
+		\unskip\computecountitems\ifnumcomp{\previtemizecount}{>}{3}{\end{multicols}}{}}
+\makeatother
+\newenvironment{AutoMultiColEnumerate}{%
+	\ifnumcomp{\nextitemizecount}{>}{3}{\begin{multicols}{2}}{}%
+		\setupcountitems\begin{enumerate}}%
+		{\end{enumerate}%
+		\unskip\computecountitems\ifnumcomp{\previtemizecount}{>}{3}{\end{multicols}}{}}
+%% end columns

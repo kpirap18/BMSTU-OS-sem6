@@ -1,7 +1,7 @@
 CURRENT = $(shell uname -r)
 KDIR = /lib/modules/$(CURRENT)/build
 PWD = $(shell pwd)
-TARGET = seqfile
+TARGET = seqfile_SSNS
 obj-m := $(TARGET).o
 
 default:

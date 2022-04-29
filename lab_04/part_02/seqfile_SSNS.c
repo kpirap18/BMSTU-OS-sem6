@@ -23,7 +23,12 @@ MODULE_DESCRIPTION("Fortune Cookie Kernel Module");
 static struct proc_dir_entry *fortune_dir;
 static struct proc_dir_entry *fortune_file;
 static struct proc_dir_entry *fortune_symlink;
+
+
 static char *buffer = NULL;
+
+static int read_index = 0;
+static int write_index = 0;
 
 // первый, вызываемый start(), запускает сеанс и принимает позицию
 // в качестве аргумента, возвращая итератор, который начнет чтение
@@ -59,7 +64,6 @@ static void *ct_seq_next(struct seq_file *m, void *v, loff_t *pos)
     // *pos += strlen((char*)(v));  
     (*pos)++;
 
-
     return NULL;
 }
 
@@ -70,8 +74,20 @@ static void ct_seq_stop(struct seq_file *m, void *v)
 
 static int fortune_show(struct seq_file *sfile, void *v)
 {
-    printk(KERN_INFO "++ MY_FORTUNE: %s called. %s\n", __func__, (char *)v);
-    seq_printf(sfile, (char *)v);
+    printk(KERN_INFO "++ MY_FORTUNE: %s called.\n", __func__);
+
+    if (read_index >= write_index)
+    {
+        read_index = 0;
+    }
+    
+    seq_printf(sfile, buffer + read_index);
+
+    int len = strlen(buffer + read_index);
+    if (len > 0)
+    {
+        read_index += len + 1;
+    }
     
     return OK;
 }
@@ -98,26 +114,30 @@ static int fortune_open(struct inode *sp_inode, struct file *sp_file)
 static int fortune_release(struct inode *sp_node, struct file *sp_file) 
 {
     printk(KERN_INFO "++ MY_FORTUNE: %s called.\n", __func__);
-    return OK;
+    return seq_release(sp_node, sp_file);
 }
 
 static ssize_t fortune_write(struct file *file, const char __user *buf, size_t len, loff_t *ppos) 
 {
     printk(KERN_INFO "++ MY_FORTUNE: %s called.\n", __func__);
 
-    if (len > MAX_BUF_SIZE)
+    if (len > MAX_BUF_SIZE - write_index + 1)
     {
         printk(KERN_ERR "++ MY_FORTUNE: %s.\n", "Buffer overflow");
         return -ENOSPC;
     }
 
-    if (copy_from_user(buffer, buf, len) != 0)
+    if (copy_from_user(&buffer[write_index], buf, len) != 0)
     {
         printk(KERN_ERR "++ MY_FORTUNE: %s.\n", "copy_from_user function get a error");
         return -EFAULT;
     }
 
-    buffer[len - 1] = '\0';
+    write_index += len;
+    buffer[write_index - 1] = '\n';
+
+    buffer[write_index] = '\0';
+    write_index += 1;
 
     return len;
 }

@@ -1,0 +1,1 @@
+cmd_/home/kpirap18/sem6/BMSTU-OS-sem6/lab_04/part_02/modules.order := {   echo /home/kpirap18/sem6/BMSTU-OS-sem6/lab_04/part_02/seqfile_SSNS.ko; :; } | awk '!x[$$0]++' - > /home/kpirap18/sem6/BMSTU-OS-sem6/lab_04/part_02/modules.order
