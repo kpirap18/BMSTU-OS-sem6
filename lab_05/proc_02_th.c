@@ -3,19 +3,35 @@
 #include <pthread.h>
 #include <stdio.h>
 
-void read_file(int fd)
+static int pos = 0;
+pthread_mutex_t mutex;
+
+
+void read_file(int fd, int flag)
 {
 	char c;
-	while (read(fd, &c, 1))
+	// lseek (fd, pos, SEEK_SET);
+	while (pos < 26)
 	{
-		write(1, &c, 1);
+		pthread_mutex_lock(&mutex);
+			lseek (fd, pos, SEEK_SET);
+			read(fd, &c, 1);
+			// printf(" %d -- ", pos);
+			
+			if (flag == 2)
+			{
+				c = c + 32;
+			}
+			write(1, &c, 1);
+			pos++;
+		pthread_mutex_unlock(&mutex);
 	}
 }
 
 void *thr_fn(void *arg)
 {
 	int fd = open("alphabet.txt", O_RDONLY);
-	read_file(fd);
+	read_file(fd, 2);
 }
 
 int main()
@@ -33,7 +49,7 @@ int main()
 		return -1;
 	}
 
-	read_file(fd);
+	read_file(fd, 1);
 	pthread_join(tid, NULL);
 
     write(1, "\n", 1);

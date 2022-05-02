@@ -10,6 +10,9 @@ app2:
 th2:
 	gcc -pthread -o a.out proc_02_th.c
 
+th2_2:
+	gcc -pthread -o a.out proc_02_th_02.c
+
 app3:
 	gcc proc_03.c
 
