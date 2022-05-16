@@ -60,12 +60,13 @@ static void print_process(struct task_struct *task, struct super_block *sb, stru
     // Использование list_for_each для дочерних элементов означает, что дочерние элементы являются корнем. 
     // Использование list_entry для sibling означает, что sibling является записью списка.
     list_for_each(list, &task->children)
-    // while (&task->children)
     {
         cur = list_entry(list, struct task_struct, sibling);
-        // cur = &task->children;
+        char *f;
+        sprintf(f, "%d ", sibling);
+        printk("%s\n", f);
         sprintf(buff, "%d", cur->pid);
-        if (&cur->children)
+        if (!list_empty(&cur->children))
         {
             struct dentry *new_parent = s2fs_create_dir(sb, parent, buff);
             s2fs_create_file(sb, new_parent, buff, cur->pid);
