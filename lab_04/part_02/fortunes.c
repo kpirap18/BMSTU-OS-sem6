@@ -175,7 +175,8 @@ static int __init fortune_init(void)
         cleanup_fortune();
         return -ENOMEM;
     }
-
+    int k = (int)(fortune_dir->low_ino);
+    printk(KERN_INFO "low_ino fort_dir = %d", k);
     // создаем файл = регистрируем структуру
     // имя файла, права доступа, указатель на родительскую директорию 
     // (у нас NULL - корневой каталог /proc),

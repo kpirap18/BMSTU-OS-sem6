@@ -16,12 +16,12 @@ void info()
 
 int main()
 {
-    FILE *f1 = fopen("res3.txt", "a");
+    FILE *f1 = fopen("res3.txt", "w");
     info();
-    FILE *f2 = fopen("res3.txt", "a");
+    FILE *f2 = fopen("res3.txt", "w");
     info();
 
-
+    fprintf(f2, "%s", "hhhhhhhhhhhhhhhhhhhh");
 	printf("\nfs1 _fileno: %d", f1->_fileno);
 	printf("\nfs2 _fileno: %d\n\n", f2->_fileno);
 

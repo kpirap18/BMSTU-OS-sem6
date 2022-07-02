@@ -27,7 +27,7 @@ static struct dentry *s2fs_create_file(struct super_block *sb, struct dentry *di
 // структура описывающая файловую систему
 static struct file_system_type s2fs_type = {
     .owner = THIS_MODULE,
-    .name = "s2fs",
+    .name = "vfs",
     .mount = s2fs_mount,
     .kill_sb = kill_litter_super,
 };
@@ -62,9 +62,6 @@ static void print_process(struct task_struct *task, struct super_block *sb, stru
     list_for_each(list, &task->children)
     {
         cur = list_entry(list, struct task_struct, sibling);
-        char *f;
-        sprintf(f, "%d ", sibling);
-        printk("%s\n", f);
         sprintf(buff, "%d", cur->pid);
         if (!list_empty(&cur->children))
         {
@@ -123,30 +120,22 @@ static int s2fs_open(struct inode *ino, struct file *fp)
 // функция для получения информации о задаче и печати ее в буфер
 int get_task_info(int pid, char *data)
 {
-    char *name, *state, *pids, *cpu_id, *tgid, *ppid, *dprio, *sprio, *nprio, *rtprio, *vmspace, *vmuse, *pmap;
     struct pid *pidp = find_get_pid((pid_t)pid);
     struct task_struct *task = get_pid_task(pidp, PIDTYPE_PID);
     if (task == NULL)
         return -1;
     
     
-    sprintf(name, "Name: %s\n", task->comm);
-    sprintf(state, "State: %ld\n", task->state);
-    sprintf(pids, "PID: %d\n", task->pid);
-    sprintf(cpu_id, "CPU_ID: %d\n", task->cpu);
-    sprintf(tgid, "TGID: %d\n", task->tgid);
-    sprintf(ppid, "PPID: %d\n", task->real_parent->pid);
-    sprintf(dprio, "Dynamic_Priority: %d\n", task->prio);
-    sprintf(sprio, "Static_Priority: %d\n", task->static_prio);
-    sprintf(nprio, "Normal_Priority: %d\n", task->normal_prio);
-    sprintf(rtprio, "Real_Time_Priority: %d\n", task->rt_priority);
-    sprintf(vmspace, "Virtual_Memory_Space: %lu\n", task->mm->task_size);
-    sprintf(vmuse, "Virtual_Memory_Usage: %lu\n", task->mm->highest_vm_end);
-    sprintf(pmap, "Pages_Mapped: %lu\n", task->mm->total_vm);
-
-    sprintf(data, "%s%s%s%s%s%s%s%s%s%s%s%s%s", name, state, pids, cpu_id, \
-        tgid, ppid, dprio, sprio, nprio, rtprio, vmspace, vmuse, pmap);
-    return strlen(data);
+    sprintf(data, "Name: %s\nState: %ld\nPID: %d\nCPU_ID: %d\n\
+TGID: %d\nPPID: %d\nStart_Time: %llu\n\
+Dynamic_Priority: %d\nStatic_Priority: %d\n\
+Normal_Priority: %d\nReal_Time_Priority: %d\n\
+Memory_Map_Base: %lu\nVirtual_Memory_Space: %lu\n\
+Virtual_Memory_Usage: %lu\nVirtual_Memory_Num: %d\nPages_Mapped: %lu\n", 
+          task->comm, task->state, task->pid, task->cpu, task->tgid, task->real_parent->pid,
+          task->start_time, task->prio, task->static_prio, task->normal_prio, task->rt_priority, 
+          task->mm->mmap_base, task->mm->task_size, task->mm->highest_vm_end, task->mm->map_count, task->mm->total_vm); 
+  return strlen(data);
 }
 
 // функция для получения pid из указателя файла
