@@ -1,1 +1,0 @@
-cmd_/home/kpirap18/sem6/BMSTU-OS-sem6/lab_04/part_02/seqfile_SSNS.mod := { echo  /home/kpirap18/sem6/BMSTU-OS-sem6/lab_04/part_02/seqfile_SSNS.o;  echo; } > /home/kpirap18/sem6/BMSTU-OS-sem6/lab_04/part_02/seqfile_SSNS.mod
